@@ -1,0 +1,55 @@
+{
+  "manifest": {
+    "publishingInformation": {
+      "locales": {
+        "en-GB": {
+          "summary": "Provides publicly available company data",
+          "examplePhrases": [
+            "Alexa, ask Companies House to tell me about number",
+            "Alexa, ask Companies House for information on number",
+            "Get company number from Companies House",
+            "Tell me company details for number from Companies House",
+            "Alexa, ask Companies House to get the officers of number",
+            "Alexa, ask Companies House to tell me the officers of company number",
+            "Alexa, ask Companies House to tell me the officers in company number",
+            "Alexa, who are the officers of number from Companies House",
+            "Alexa, I want the officers of number from Companies House"
+          ],
+          "keywords": [
+            "company",
+            "data"
+          ],
+          "name": "companies house",
+          "description": "Want to know your accounting and confirmation statement due dates? Alexa knows, Just say: Alexa, ask company house to tell me about <Company Number>. Want to know who the officers are of that company? Say: Tell me the officers of <Company Number>",
+          "smallIconUri": "",
+          "largeIconUri": ""
+        }
+      },
+      "isAvailableWorldwide": true,
+      "testingInstructions": "No special instructions",
+      "category": "BUSINESS_AND_FINANCE",
+      "distributionCountries": []
+    },
+    "apis": {
+      "custom": {
+        "endpoint": {
+          "sourceDir": "lambda/custom"
+        }
+      }
+    },
+    "manifestVersion": "1.0",
+    "privacyAndCompliance": {
+      "allowsPurchases": false,
+      "locales": {
+        "en-GB": {
+          "termsOfUseUrl": "http://resources.companieshouse.gov.uk/serviceInformation.shtml",
+          "privacyPolicyUrl": "http://resources.companieshouse.gov.uk/serviceInformation.shtml"
+        }
+      },
+      "isExportCompliant": true,
+      "containsAds": false,
+      "isChildDirected": false,
+      "usesPersonalInfo": false
+    }
+  }
+}

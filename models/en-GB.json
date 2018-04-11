@@ -1,0 +1,55 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "companies house",
+            "intents": [
+                {
+                    "name": "GetCompany",
+                    "slots": [
+                        {
+                            "name": "number",
+                            "type": "AMAZON.NUMBER"
+                        }
+                    ],
+                    "samples": [
+                        "for information on {number}",
+                        "for info on {number}",
+                        "to tell me about {number}",
+                        "to tell me about company {number}",
+                        "to get company {number}",
+                        "to give me company details {number}",
+                        "to tell me company details {number}"
+                    ]
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "GetOfficers",
+                    "slots": [
+                        {
+                            "name": "companyNumber",
+                            "type": "AMAZON.NUMBER"
+                        }
+                    ],
+                    "samples": [
+                        "get the officers of {companyNumber}",
+                        "get the officers in {companyNumber}",
+                        "tell me the officers in company {companyNumber}",
+                        "to get the officers of {companyNumber}"
+                    ]
+                }
+            ],
+            "types": []
+        }
+    }
+}
