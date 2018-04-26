@@ -7,20 +7,14 @@
           "examplePhrases": [
             "Alexa, ask Companies House to tell me about number",
             "Alexa, ask Companies House for information on number",
-            "Get company number from Companies House",
-            "Tell me company details for number from Companies House",
-            "Alexa, ask Companies House to get the officers of number",
-            "Alexa, ask Companies House to tell me the officers of company number",
-            "Alexa, ask Companies House to tell me the officers in company number",
-            "Alexa, who are the officers of number from Companies House",
-            "Alexa, I want the officers of number from Companies House"
+            "Alexa, tell me the officers in company number from Companies House"
           ],
           "keywords": [
             "company",
             "data"
           ],
           "name": "companies house",
-          "description": "Want to know your accounting and confirmation statement due dates? Alexa knows, Just say: Alexa, ask company house to tell me about <Company Number>. Want to know who the officers are of that company? Say: Tell me the officers of <Company Number>",
+          "description": "Want to know your accounting and confirmation statement due dates? Alexa knows, Just say: Alexa, ask company house to tell me about <Company Number>. Want to know who the officers are of that company? Alexa, ask companies house who are the appointments of <Company Number>",
           "smallIconUri": "",
           "largeIconUri": ""
         }

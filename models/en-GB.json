@@ -7,49 +7,238 @@
                     "name": "GetCompany",
                     "slots": [
                         {
-                            "name": "number",
-                            "type": "AMAZON.NUMBER"
+                            "name": "companyNumber",
+                            "type": "AMAZON.NUMBER",
+                            "samples": [
+                                "{companyNumberOpt} {companyNumber}"
+                            ]
+                        },
+                        {
+                            "name": "companyNumberOpt",
+                            "type": "CompanyTypes"
                         }
                     ],
                     "samples": [
-                        "for information on {number}",
-                        "for info on {number}",
-                        "to tell me about {number}",
-                        "to tell me about company {number}",
-                        "to get company {number}",
-                        "to give me company details {number}",
-                        "to tell me company details {number}"
+                        "to tell me about {companyNumber}",
+                        "for information on {companyNumber}",
+                        "for information on {companyNumberOpt} {companyNumber}",
+                        "to tell me about {companyNumberOpt} {companyNumber}"
                     ]
                 },
                 {
                     "name": "AMAZON.StopIntent",
-                    "samples": []
+                    "samples": [
+                        "stop"
+                    ]
                 },
                 {
                     "name": "AMAZON.CancelIntent",
-                    "samples": []
+                    "samples": [
+                        "cancel"
+                    ]
                 },
                 {
                     "name": "AMAZON.HelpIntent",
-                    "samples": []
+                    "samples": [
+                        "I don't understand",
+                        "help",
+                        "What do you mean"
+                    ]
                 },
                 {
                     "name": "GetOfficers",
                     "slots": [
                         {
                             "name": "companyNumber",
-                            "type": "AMAZON.NUMBER"
+                            "type": "AMAZON.NUMBER",
+                            "samples": [
+                                "{companyNumberOpt} {companyNumber}"
+                            ]
+                        },
+                        {
+                            "name": "companyNumberOpt",
+                            "type": "CompanyTypes"
                         }
                     ],
                     "samples": [
-                        "get the officers of {companyNumber}",
-                        "get the officers in {companyNumber}",
-                        "tell me the officers in company {companyNumber}",
-                        "to get the officers of {companyNumber}"
+                        "who are the appointments of {companyNumberOpt} {companyNumber}",
+                        "tell me the officers in company {companyNumberOpt} {companyNumber}"
                     ]
                 }
             ],
-            "types": []
-        }
+            "types": [
+                {
+                    "name": "CompanyTypes",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "O. C."
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "O.C."
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "N. I."
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "N.I."
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "S. C."
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "S.C."
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "S C"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "SC"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "NI"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "N I"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "O C"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "OC"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "dialog": {
+            "intents": [
+                {
+                    "name": "GetOfficers",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "companyNumber",
+                            "type": "AMAZON.NUMBER",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.463670801273.74542096593"
+                            }
+                        },
+                        {
+                            "name": "companyNumberOpt",
+                            "type": "CompanyTypes",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        }
+                    ]
+                },
+                {
+                    "name": "GetCompany",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": [
+                        {
+                            "name": "companyNumber",
+                            "type": "AMAZON.NUMBER",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.272306088752.1511658846045"
+                            }
+                        },
+                        {
+                            "name": "companyNumberOpt",
+                            "type": "CompanyTypes",
+                            "confirmationRequired": false,
+                            "elicitationRequired": false,
+                            "prompts": {}
+                        }
+                    ]
+                }
+            ]
+        },
+        "prompts": [
+            {
+                "id": "Elicit.Slot.1122624845390.106887428611",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "What is the company number you want to hear about?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.1177327788856.1087866640195",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "What is the company number that the officers belong to?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.1432449769494.989911990633",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "What is the company number of the company you want to hear about?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.1286252359257.890418905669",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "What is the company number for the company the officers are appointed to?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.463670801273.74542096593",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "What is the company number the officers are appointed to?"
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.272306088752.1511658846045",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "What is the company number of the company you want information on?"
+                    }
+                ]
+            }
+        ]
     }
 }

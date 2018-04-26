@@ -14,19 +14,24 @@ var handlers = {
     'GetCompany': function() {
         var slot;
         var path;
+
+        let isTestingWithSimulator = false; //autofill slots when using simulator, dialog management is only supported with a device
+        let filledSlots = delegateSlotCollection.call(this, isTestingWithSimulator);
+        
         if ( typeof this.event.request.intent !== "undefined" ) {
             if ( typeof this.event.request.intent.slots !== "undefined" ) {
-                slot = this.event.request.intent.slots.number.value;
+                slot = retrieveSlotInfo.call(this, this.event.request.intent.slots);
             }
         }
-        if( typeof slot === "undefined" ){ slot = "" };
-        path = "/company/" + slot.padStart(8, "0");
+        console.log("Back from delegateSlotCollection, slot is: ", slot);
+        path = "/company/" + slot;
         getAPIData((data) => {
             var outputSpeech = "";
             if( typeof data.errors !== "undefined" ) {
                 outputSpeech = "No company details were returned. Please check the company number provided";
             }
             else {
+                console.log("data returned: ", data);
                 outputSpeech += data.company_name + ", created on " + new Date(data.date_of_creation).toDateString() + ".";
                 outputSpeech += ' Next accounts are due: ' + new Date(data.accounts.next_accounts.due_on).toDateString() + ".";
                 outputSpeech += ' Next confirmation statement is due: ' + new Date(data.confirmation_statement.next_due).toDateString() + ".";
@@ -37,13 +42,16 @@ var handlers = {
     'GetOfficers': function() {
         var slot;
         var path;
+
+        let isTestingWithSimulator = false; //autofill slots when using simulator, dialog management is only supported with a device
+        let filledSlots = delegateSlotCollection.call(this, isTestingWithSimulator);
+        
         if ( typeof this.event.request.intent !== "undefined" ) {
             if ( typeof this.event.request.intent.slots !== "undefined" ) {
-                slot = this.event.request.intent.slots.companyNumber.value;
+                slot = retrieveSlotInfo.call(this, this.event.request.intent.slots);
             }
         }
-        if( typeof slot === "undefined" ){ slot = "" };
-        path = "/company/" + slot.padStart(8, "0") + "/officers?items_per_page=5";
+        path = "/company/" + slot + "/officers?items_per_page=5";
         getAPIData((data) => {
             var outputSpeech = "";
             if( typeof data.errors !== "undefined" ) {
@@ -55,7 +63,7 @@ var handlers = {
                     outputSpeech += "There are " + data.active_count + " active officers. Here are the first five returned. ";
                 }
                 else {
-                    outputSpeech += "There are " + data.active_count + " active officers. ";                  
+                    outputSpeech += "There are " + data.active_count + " active officers. ";
                 }
                 for (var i = 0; i < data.items.length; i++) {
                     var officerNum = i+1;
@@ -85,6 +93,61 @@ var handlers = {
     }
 };
 
+function delegateSlotCollection(shouldFillSlotsWithTestData) {
+    console.log("in delegateSlotCollection");
+    console.log("current dialogState: " + this.event.request.dialogState);
+
+    // This will fill any empty slots with canned data provided in defaultData
+    // and mark dialogState COMPLETED.
+    // USE ONLY FOR TESTING IN THE SIMULATOR.
+    if (shouldFillSlotsWithTestData) {
+        // let filledSlots = fillSlotsWithTestData.call(this, defaultData);
+        this.event.request.dialogState = "COMPLETED";
+    };
+
+    if (this.event.request.dialogState === "STARTED") {
+        console.log("in STARTED");
+        console.log(JSON.stringify(this.event));
+        var updatedIntent=this.event.request.intent;
+        // optionally pre-fill slots: update the intent object with slot values 
+        // for which you have defaults, then return Dialog.Delegate with this
+
+        return this.emit(":delegate", updatedIntent);
+    } else if (this.event.request.dialogState !== "COMPLETED") {
+        console.log("in not completed");
+        //console.log(JSON.stringify(this.event));
+
+        return this.emit(":delegate", updatedIntent);
+    } else {
+        console.log("in completed");
+        //console.log("returning: "+ JSON.stringify(this.event.request.intent));
+        // Dialog is now complete and all required slots should be filled,
+        // so call your normal intent handler.
+        return this.event.request.intent.slots;
+    }
+}
+
+function retrieveSlotInfo(slots) {
+    console.log("slots received: ", slots);
+    var slot = "";
+    if ( typeof slots.companyNumber.value !== "undefined" ) {
+        slot = slots.companyNumber.value;
+    }
+    if ( typeof slots.companyNumberOpt.value !== "undefined" ) {
+        var slotOpt = slots.companyNumberOpt.value;
+        if( slotOpt.match(/^(NI|SC|OC)$/) ) {
+            slot = slotOpt + slot;
+        }
+    }
+    if (slot.length !== 0) {
+        slot = slot.toUpperCase().padStart(8, "0");
+    }
+    else {
+        slot = "";
+    }
+    return slot;
+}
+
 function getAPIData(callback, path) {
     var options = {
         host: 'api.companieshouse.gov.uk',
@@ -92,6 +155,7 @@ function getAPIData(callback, path) {
         path: path,
         method: 'GET'
     };
+    console.log("Path: ", path);
 
     var req = http.request(options, res => {
         var returnData = "";
