@@ -10,7 +10,7 @@ exports.handler = function(event, context, callback) {
     alexa.execute();
 };
 AWS.config.update({
-  region: 'eu-west-1'
+  region: process.env.region
 });
 
 var handlers = {
