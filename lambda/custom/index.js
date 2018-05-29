@@ -107,19 +107,16 @@ var handlers = {
             }
             else {
                 console.log("data returned: ", data);
-                outputSpeech += data.company_name + ", created on " + new Date(data.date_of_creation).toDateString() + ".";
-                outputSpeech += ' Next accounts are due: ' + new Date(data.accounts.next_accounts.due_on).toDateString() + ".";
-                outputSpeech += ' Next confirmation statement is due: ' + new Date(data.confirmation_statement.next_due).toDateString() + ".";
+                console.log("Adding a new item...");
+                this.attributes['companyNumber'] = companyNumber;
+                this.response.shouldEndSession(true);
+                this.emit(':tellWithCard', "Company " + companyNumber + " has been stored", "Store My Company " + companyNumber, "Company " + companyNumber + " has been stored", "");
             }
-            this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "Store My Company " + companyNumber, outputSpeech.replace('&', "and"), "");
         }, path);
 
-        console.log("Adding a new item...");
         // this.attributes['companyAlias'] = companyAlias;
-        this.attributes['companyNumber'] = companyNumber;
 
-        // this.emit(':tell', "DB Saved things? " + companyNumber);
-        this.emit(':ask', "Is this the company you wish to save?", "How can I help?");
+        // this.emit(':ask', "Is this the company you wish to save?", "How can I help?");
     },
     'MyCompanyCS': function() {
         var companyNumber = this.attributes['companyNumber'];
@@ -133,7 +130,7 @@ var handlers = {
             else {
                 console.log("data returned: ", data);
                 outputSpeech += "Your stored company: " + data.company_name + ".";
-                outputSpeech += ' Next accounts are due: ' + new Date(data.accounts.next_accounts.due_on).toDateString() + ".";
+                outputSpeech += ' Next confirmation statement is due: ' + new Date(data.confirmation_statement.next_due).toDateString() + ".";                
             }
             this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "My Company Confirmation Statement", outputSpeech.replace('&', "and"), "");
         }, path);
@@ -150,7 +147,7 @@ var handlers = {
             else {
                 console.log("data returned: ", data);
                 outputSpeech += "Your stored company: " + data.company_name + ".";
-                outputSpeech += ' Next confirmation statement is due: ' + new Date(data.confirmation_statement.next_due).toDateString() + ".";
+                outputSpeech += ' Next accounts are due: ' + new Date(data.accounts.next_accounts.due_on).toDateString() + ".";
             }
             this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "My Company Accounts", outputSpeech.replace('&', "and"), "");
         }, path);
