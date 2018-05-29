@@ -87,7 +87,6 @@ var handlers = {
     },
     'StoreCompany': function() {
         var companyNumber;
-        //var companyAlias;
 
         let isTestingWithSimulator = false; //autofill slots when using simulator, dialog management is only supported with a device
         let filledSlots = delegateSlotCollection.call(this, isTestingWithSimulator);
@@ -95,7 +94,6 @@ var handlers = {
         if ( typeof this.event.request.intent !== "undefined" ) {
             if ( typeof this.event.request.intent.slots !== "undefined" ) {
                 companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
-                // companyAlias = retrieveCompanyAlias.call(this, this.event.request.intent.slots);
             }
         }
 
@@ -113,10 +111,6 @@ var handlers = {
                 this.emit(':tellWithCard', "Company " + companyNumber + " has been stored", "Store My Company " + companyNumber, "Company " + companyNumber + " has been stored", "");
             }
         }, path);
-
-        // this.attributes['companyAlias'] = companyAlias;
-
-        // this.emit(':ask', "Is this the company you wish to save?", "How can I help?");
     },
     'MyCompanyCS': function() {
         var companyNumber = this.attributes['companyNumber'];
@@ -185,18 +179,13 @@ function delegateSlotCollection(shouldFillSlotsWithTestData) {
         // optionally pre-fill slots: update the intent object with slot values 
         // for which you have defaults, then return Dialog.Delegate with this 
 
-        // disambiguateSlot.call(this);
-        // console.log("disambiguated: " + JSON.stringify(this.event));
         return this.emit(":delegate", updatedIntent);
     } else if (this.event.request.dialogState !== "COMPLETED") {
         console.log("in not completed");
-        //console.log(JSON.stringify(this.event));
 
-        //disambiguateSlot.call(this);
         return this.emit(":delegate", this.event.request.intent);
     } else {
         console.log("in completed");
-        //console.log("returning: "+ JSON.stringify(this.event.request.intent));
         // Dialog is now complete and all required slots should be filled,
         // so call your normal intent handler.
         return this.event.request.intent.slots;
