@@ -1,18 +1,24 @@
 var Alexa = require('alexa-sdk');
+var AWS = require('aws-sdk');
 var http = require('https');
 
 exports.handler = function(event, context, callback) {
     var alexa = Alexa.handler(event, context);
+    alexa.appId = process.env.app_id;
+    alexa.dynamoDBTableName = "alexa-ch-data";
     alexa.registerHandlers(handlers);
     alexa.execute();
 };
+AWS.config.update({
+  region: 'eu-west-1'
+});
 
 var handlers = {
     'LaunchRequest': function() {
         this.emit('GetCompany');
     },
     'GetCompany': function() {
-        var slot;
+        var companyNumber;
         var path;
 
         let isTestingWithSimulator = false; //autofill slots when using simulator, dialog management is only supported with a device
@@ -20,11 +26,11 @@ var handlers = {
         
         if ( typeof this.event.request.intent !== "undefined" ) {
             if ( typeof this.event.request.intent.slots !== "undefined" ) {
-                slot = retrieveSlotInfo.call(this, this.event.request.intent.slots);
+                companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
             }
         }
-        console.log("Back from delegateSlotCollection, slot is: ", slot);
-        path = "/company/" + slot;
+        console.log("Back from delegateSlotCollection, slot is: ", companyNumber);
+        path = "/company/" + companyNumber;
         getAPIData((data) => {
             var outputSpeech = "";
             if( typeof data.errors !== "undefined" ) {
@@ -36,11 +42,11 @@ var handlers = {
                 outputSpeech += ' Next accounts are due: ' + new Date(data.accounts.next_accounts.due_on).toDateString() + ".";
                 outputSpeech += ' Next confirmation statement is due: ' + new Date(data.confirmation_statement.next_due).toDateString() + ".";
             }
-            this.emit(':tell', outputSpeech.replace('&', "and"));
+            this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "Get Company " + companyNumber, outputSpeech.replace('&', "and"), "");
         }, path);
     },
     'GetOfficers': function() {
-        var slot;
+        var companyNumber;
         var path;
 
         let isTestingWithSimulator = false; //autofill slots when using simulator, dialog management is only supported with a device
@@ -48,10 +54,10 @@ var handlers = {
         
         if ( typeof this.event.request.intent !== "undefined" ) {
             if ( typeof this.event.request.intent.slots !== "undefined" ) {
-                slot = retrieveSlotInfo.call(this, this.event.request.intent.slots);
+                companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
             }
         }
-        path = "/company/" + slot + "/officers?items_per_page=5";
+        path = "/company/" + companyNumber + "/officers?items_per_page=5";
         getAPIData((data) => {
             var outputSpeech = "";
             if( typeof data.errors !== "undefined" ) {
@@ -76,7 +82,77 @@ var handlers = {
             else {
                 outputSpeech = "No officer details were returned. Please check the company number provided";
             }
-            this.emit(':tell', outputSpeech.replace('&', "and"));
+            this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "Get Officers of Company " + companyNumber, outputSpeech.replace('&', "and"), "");
+        }, path);
+    },
+    'StoreCompany': function() {
+        var companyNumber;
+        //var companyAlias;
+
+        let isTestingWithSimulator = false; //autofill slots when using simulator, dialog management is only supported with a device
+        let filledSlots = delegateSlotCollection.call(this, isTestingWithSimulator);
+        
+        if ( typeof this.event.request.intent !== "undefined" ) {
+            if ( typeof this.event.request.intent.slots !== "undefined" ) {
+                companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
+                // companyAlias = retrieveCompanyAlias.call(this, this.event.request.intent.slots);
+            }
+        }
+
+        path = "/company/" + companyNumber;
+        getAPIData((data) => {
+            var outputSpeech = "";
+            if( typeof data.errors !== "undefined" ) {
+                outputSpeech = "No company details were returned. Please check the company number provided";
+            }
+            else {
+                console.log("data returned: ", data);
+                outputSpeech += data.company_name + ", created on " + new Date(data.date_of_creation).toDateString() + ".";
+                outputSpeech += ' Next accounts are due: ' + new Date(data.accounts.next_accounts.due_on).toDateString() + ".";
+                outputSpeech += ' Next confirmation statement is due: ' + new Date(data.confirmation_statement.next_due).toDateString() + ".";
+            }
+            this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "Store My Company " + companyNumber, outputSpeech.replace('&', "and"), "");
+        }, path);
+
+        console.log("Adding a new item...");
+        // this.attributes['companyAlias'] = companyAlias;
+        this.attributes['companyNumber'] = companyNumber;
+
+        // this.emit(':tell', "DB Saved things? " + companyNumber);
+        this.emit(':ask', "Is this the company you wish to save?", "How can I help?");
+    },
+    'MyCompanyCS': function() {
+        var companyNumber = this.attributes['companyNumber'];
+
+        path = "/company/" + companyNumber;
+        getAPIData((data) => {
+            var outputSpeech = "";
+            if( typeof data.errors !== "undefined" ) {
+                outputSpeech = "No company details were returned. Please check the company number provided";
+            }
+            else {
+                console.log("data returned: ", data);
+                outputSpeech += "Your stored company: " + data.company_name + ".";
+                outputSpeech += ' Next accounts are due: ' + new Date(data.accounts.next_accounts.due_on).toDateString() + ".";
+            }
+            this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "My Company Confirmation Statement", outputSpeech.replace('&', "and"), "");
+        }, path);
+    },
+    'MyCompanyAccounts': function() {
+        var companyNumber = this.attributes['companyNumber'];
+
+        path = "/company/" + companyNumber;
+        getAPIData((data) => {
+            var outputSpeech = "";
+            if( typeof data.errors !== "undefined" ) {
+                outputSpeech = "No company details were returned. Please check the company number provided";
+            }
+            else {
+                console.log("data returned: ", data);
+                outputSpeech += "Your stored company: " + data.company_name + ".";
+                outputSpeech += ' Next confirmation statement is due: ' + new Date(data.confirmation_statement.next_due).toDateString() + ".";
+            }
+            this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "My Company Accounts", outputSpeech.replace('&', "and"), "");
         }, path);
     },
     'AMAZON.HelpIntent': function() {
@@ -103,21 +179,24 @@ function delegateSlotCollection(shouldFillSlotsWithTestData) {
     if (shouldFillSlotsWithTestData) {
         // let filledSlots = fillSlotsWithTestData.call(this, defaultData);
         this.event.request.dialogState = "COMPLETED";
-    };
+    }
 
     if (this.event.request.dialogState === "STARTED") {
         console.log("in STARTED");
         console.log(JSON.stringify(this.event));
         var updatedIntent=this.event.request.intent;
         // optionally pre-fill slots: update the intent object with slot values 
-        // for which you have defaults, then return Dialog.Delegate with this
+        // for which you have defaults, then return Dialog.Delegate with this 
 
+        // disambiguateSlot.call(this);
+        // console.log("disambiguated: " + JSON.stringify(this.event));
         return this.emit(":delegate", updatedIntent);
     } else if (this.event.request.dialogState !== "COMPLETED") {
         console.log("in not completed");
         //console.log(JSON.stringify(this.event));
 
-        return this.emit(":delegate", updatedIntent);
+        //disambiguateSlot.call(this);
+        return this.emit(":delegate", this.event.request.intent);
     } else {
         console.log("in completed");
         //console.log("returning: "+ JSON.stringify(this.event.request.intent));
@@ -127,25 +206,25 @@ function delegateSlotCollection(shouldFillSlotsWithTestData) {
     }
 }
 
-function retrieveSlotInfo(slots) {
+function retrieveCompanyNumber(slots) {
     console.log("slots received: ", slots);
-    var slot = "";
+    var companyNumber = "";
     if ( typeof slots.companyNumber.value !== "undefined" ) {
-        slot = slots.companyNumber.value;
+        companyNumber = this.event.request.intent.slots.companyNumber.value;
     }
     if ( typeof slots.companyNumberOpt.value !== "undefined" ) {
-        var slotOpt = slots.companyNumberOpt.value;
+        var slotOpt = this.event.request.intent.slots.companyNumberOpt.value;
         if( slotOpt.match(/^(NI|SC|OC)$/) ) {
-            slot = slotOpt + slot;
+            companyNumber = slotOpt + companyNumber;
         }
     }
-    if (slot.length !== 0) {
-        slot = slot.toUpperCase().padStart(8, "0");
+    if (companyNumber.length !== 0) {
+        companyNumber = companyNumber.toUpperCase().padStart(8, "0");
     }
     else {
-        slot = "";
+        companyNumber = "";
     }
-    return slot;
+    return companyNumber;
 }
 
 function getAPIData(callback, path) {
