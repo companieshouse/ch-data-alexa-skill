@@ -15,7 +15,7 @@ AWS.config.update({
 
 var handlers = {
     'LaunchRequest': function() {
-        this.emit('GetCompany');
+        this.emit('StoreCompany');
     },
     'GetCompany': function() {
         var companyNumber;
@@ -33,6 +33,7 @@ var handlers = {
         path = "/company/" + companyNumber;
         getAPIData((data) => {
             var outputSpeech = "";
+            
             if( typeof data.errors !== "undefined" ) {
                 outputSpeech = "No company details were returned. Please check the company number provided";
             }
@@ -60,6 +61,7 @@ var handlers = {
         path = "/company/" + companyNumber + "/officers?items_per_page=5";
         getAPIData((data) => {
             var outputSpeech = "";
+        
             if( typeof data.errors !== "undefined" ) {
                 outputSpeech = "No company details were returned. Please check the company number provided";
             }
@@ -77,7 +79,7 @@ var handlers = {
                     outputSpeech += "Name: " + data.items[i].name + ". ";
                     outputSpeech += "Role: " + data.items[i].officer_role + ". ";
                     outputSpeech += "Appointed: " + data.items[i].appointed_on + ". ";
-                }         
+                }
             }
             else {
                 outputSpeech = "No officer details were returned. Please check the company number provided";
@@ -106,9 +108,15 @@ var handlers = {
             else {
                 console.log("data returned: ", data);
                 console.log("Adding a new item...");
-                this.attributes['companyNumber'] = companyNumber;
-                this.response.shouldEndSession(true);
-                this.emit(':tellWithCard', "Company " + companyNumber + " has been stored", "Store My Company " + companyNumber, "Company " + companyNumber + " has been stored", "");
+                this.attributes['contextIntent'] = 'StoreCompany';
+                this.attributes['tempCompanyNumber'] = companyNumber;
+                var companyName = data.company_name.replace('&', "and");
+                
+                outputSpeech += "Company found for number " + companyNumber + " is " + data.company_name + ". Is this the company you want to save?";
+                // this.response.shouldEndSession(true);
+                this.response.speak(outputSpeech).listen(outputSpeech, 'Say yes to save the company or no to quit.');
+                // this.emit(':responseReady');
+                this.emit(':askWithCard', "Company found for number " + companyNumber.replace(/(.{1})/g,"$1 ") + " is " + companyName + ". Is this the company you want to save?", "Is this the company you want to save?", "Check Company to Store", "Company found for number " + companyNumber + " is " + companyName + ".");
             }
         }, path);
     },
@@ -146,6 +154,32 @@ var handlers = {
             this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "My Company Accounts", outputSpeech.replace('&', "and"), "");
         }, path);
     },
+    'MyFilingHistory': function() {
+        var companyNumber = this.attributes['companyNumber'];
+
+        path = "/company/" + companyNumber + "/filing-history?items_per_page=3";
+        getAPIData((data) => {
+            var outputSpeech = "";
+            if( typeof data.errors !== "undefined" ) {
+                outputSpeech = "No filing history for this company was returned.";
+            }
+            else if ( typeof data.items !== "undefined" ) {
+                outputSpeech += "There have been " + data.total_count + " filings for this company: ";
+                if (data.total_count > 3) {
+                    outputSpeech += "Here are the latest three. ";
+                }
+                for (var i = 0; i < data.items.length; i++) {
+                    var filingNum = i+1;
+                    outputSpeech += "Filing " + filingNum + ": ";
+                    outputSpeech += "Date: " + data.items[i].date + ". ";
+                    outputSpeech += "Category: " + data.items[i].category + ". ";
+                    outputSpeech += "Form type: " + data.items[i].type + ". ";
+                    outputSpeech += "Description: " + data.items[i].description.replace(/-/g, " ") + ". ";
+                }         
+            }
+            this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "My Company Filing History", outputSpeech.replace('&', "and"), "");
+        }, path);
+    },
     'AMAZON.HelpIntent': function() {
         this.emit(':ask', "What can I help you with?", "How can I help?");
     },
@@ -154,6 +188,20 @@ var handlers = {
     },
     'AMAZON.StopIntent': function() {
         this.emit(':tell', "Goodbye!");
+    },
+    'AMAZON.YesIntent': function() {
+        console.log("this is: " + this);
+        if (this.attributes['contextIntent'] === 'StoreCompany') {
+            this.attributes['companyNumber'] = this.attributes['tempCompanyNumber'];
+
+            // Clean up temporary saved items.
+            this.attributes['contextIntent'] = 'default';
+            this.attributes['tempCompanyNumber'] = 'default';
+            this.emit(':tellWithCard', "Thank you, your company has been saved.", "Company Stored", "Thank you, your company has been saved.");
+        }
+    },
+    'AMAZON.NoIntent': function() {
+        this.emit(':tellWithCard', "Okay, company not saved");
     },
     'Unhandled': function () {
         this.emit(':tell', "The service threw an error");
