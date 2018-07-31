@@ -111,6 +111,12 @@ var handlers = {
                 this.attributes['contextIntent'] = 'StoreCompany';
                 this.attributes['tempCompanyNumber'] = companyNumber;
                 var companyName = data.company_name.replace('&', "and");
+
+                // TODO - WHich output speech is being used here? Is response speak/listen doing it or is askWithCard?
+                // Need to resolve gathering of company numbers. Tesco wasn't working ...
+                // Work on recognition of certain numbers: 445790 Comes through as Four For Five Seven Nine Oh Expand model with exceptions?
+                // Create outputSpeech helper method which cleans all output speech to avoid bad SSML error.
+
                 
                 outputSpeech += "Company found for number " + companyNumber + " is " + data.company_name + ". Is this the company you want to save?";
                 // this.response.shouldEndSession(true);
@@ -118,6 +124,25 @@ var handlers = {
                 // this.emit(':responseReady');
                 this.emit(':askWithCard', "Company found for number " + companyNumber.replace(/(.{1})/g,"$1 ") + " is " + companyName + ". Is this the company you want to save?", "Is this the company you want to save?", "Check Company to Store", "Company found for number " + companyNumber + " is " + companyName + ".");
             }
+        }, path);
+    },
+    'MyCompanyDetails': function() {
+        var companyNumber = this.attributes['companyNumber'];
+
+        path = "/company/" + companyNumber;
+        getAPIData((data) => {
+            var outputSpeech = "";
+            
+            if( typeof data.errors !== "undefined" ) {
+                outputSpeech = "No company details were returned. Please try to store your company number again.";
+            }
+            else {
+                console.log("data returned: ", data);
+                outputSpeech += "Your company: " + data.company_name + ", created on " + new Date(data.date_of_creation).toDateString() + ".";
+                outputSpeech += ' Next accounts are due: ' + new Date(data.accounts.next_accounts.due_on).toDateString() + ".";
+                outputSpeech += ' Next confirmation statement is due: ' + new Date(data.confirmation_statement.next_due).toDateString() + ".";
+            }
+            this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "Get Company " + companyNumber, outputSpeech.replace('&', "and"), "");
         }, path);
     },
     'MyCompanyCS': function() {
