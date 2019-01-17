@@ -10,7 +10,7 @@ exports.handler = function(event, context, callback) {
     alexa.execute();
 };
 AWS.config.update({
-  region: process.env.region
+    region: process.env.region
 });
 
 var handlers = {
@@ -23,9 +23,10 @@ var handlers = {
 
         let isTestingWithSimulator = false; //autofill slots when using simulator, dialog management is only supported with a device
         let filledSlots = delegateSlotCollection.call(this, isTestingWithSimulator);
-        
-        if ( typeof this.event.request.intent !== "undefined" ) {
-            if ( typeof this.event.request.intent.slots !== "undefined" ) {
+
+        console.log("THIS.EVENT = " + JSON.stringify(this.event));
+        if (typeof this.event.request.intent !== "undefined") {
+            if (typeof this.event.request.intent.slots !== "undefined") {
                 companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
             }
         }
@@ -33,15 +34,14 @@ var handlers = {
         path = "/company/" + companyNumber;
         getAPIData((data) => {
             var outputSpeech = "";
-            
-            if( typeof data.errors !== "undefined" ) {
+
+            if (typeof data.errors !== "undefined") {
                 outputSpeech = "No company details were returned. Please check the company number provided";
-            }
-            else {
+            } else {
                 console.log("data returned: ", data);
-                outputSpeech += data.company_name + ", created on " + new Date(data.date_of_creation).toDateString() + ".";
-                outputSpeech += ' Next accounts are due: ' + new Date(data.accounts.next_accounts.due_on).toDateString() + ".";
-                outputSpeech += ' Next confirmation statement is due: ' + new Date(data.confirmation_statement.next_due).toDateString() + ".";
+                outputSpeech += data.company_name + ", created on " + new Date(data.date_of_creation).toDateString() + ". ";
+                outputSpeech += addAccountsOutputInfo(data);
+                outputSpeech += addConfirmationStatementOutputInfo(data);
             }
             this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "Get Company " + companyNumber, outputSpeech.replace('&', "and"), "");
         }, path);
@@ -52,36 +52,33 @@ var handlers = {
 
         let isTestingWithSimulator = false; //autofill slots when using simulator, dialog management is only supported with a device
         let filledSlots = delegateSlotCollection.call(this, isTestingWithSimulator);
-        
-        if ( typeof this.event.request.intent !== "undefined" ) {
-            if ( typeof this.event.request.intent.slots !== "undefined" ) {
+
+        if (typeof this.event.request.intent !== "undefined") {
+            if (typeof this.event.request.intent.slots !== "undefined") {
                 companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
             }
         }
         path = "/company/" + companyNumber + "/officers?items_per_page=5";
         getAPIData((data) => {
             var outputSpeech = "";
-        
-            if( typeof data.errors !== "undefined" ) {
+
+            if (typeof data.errors !== "undefined") {
                 outputSpeech = "No company details were returned. Please check the company number provided";
-            }
-            else if ( typeof data.items !== "undefined" ) {
+            } else if (typeof data.items !== "undefined") {
                 outputSpeech += "There have been " + data.total_results + " officers of this company: ";
                 if (data.active_count > 5) {
                     outputSpeech += "There are " + data.active_count + " active officers. Here are the first five returned. ";
-                }
-                else {
+                } else {
                     outputSpeech += "There are " + data.active_count + " active officers. ";
                 }
                 for (var i = 0; i < data.items.length; i++) {
-                    var officerNum = i+1;
+                    var officerNum = i + 1;
                     outputSpeech += "Officer " + officerNum + ". ";
                     outputSpeech += "Name: " + data.items[i].name + ". ";
                     outputSpeech += "Role: " + data.items[i].officer_role + ". ";
                     outputSpeech += "Appointed: " + data.items[i].appointed_on + ". ";
                 }
-            }
-            else {
+            } else {
                 outputSpeech = "No officer details were returned. Please check the company number provided";
             }
             this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "Get Officers of Company " + companyNumber, outputSpeech.replace('&', "and"), "");
@@ -92,9 +89,9 @@ var handlers = {
 
         let isTestingWithSimulator = false; //autofill slots when using simulator, dialog management is only supported with a device
         let filledSlots = delegateSlotCollection.call(this, isTestingWithSimulator);
-        
-        if ( typeof this.event.request.intent !== "undefined" ) {
-            if ( typeof this.event.request.intent.slots !== "undefined" ) {
+
+        if (typeof this.event.request.intent !== "undefined") {
+            if (typeof this.event.request.intent.slots !== "undefined") {
                 companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
             }
         }
@@ -102,10 +99,9 @@ var handlers = {
         path = "/company/" + companyNumber;
         getAPIData((data) => {
             var outputSpeech = "";
-            if( typeof data.errors !== "undefined" ) {
+            if (typeof data.errors !== "undefined") {
                 outputSpeech = "No company details were returned. Please check the company number provided";
-            }
-            else {
+            } else {
                 console.log("data returned: ", data);
                 console.log("Adding a new item...");
                 this.attributes['contextIntent'] = 'StoreCompany';
@@ -117,12 +113,12 @@ var handlers = {
                 // Work on recognition of certain numbers: 445790 Comes through as Four For Five Seven Nine Oh Expand model with exceptions?
                 // Create outputSpeech helper method which cleans all output speech to avoid bad SSML error.
 
-                
+
                 outputSpeech += "Company found for number " + companyNumber + " is " + data.company_name + ". Is this the company you want to save?";
                 // this.response.shouldEndSession(true);
                 this.response.speak(outputSpeech).listen(outputSpeech, 'Say yes to save the company or no to quit.');
                 // this.emit(':responseReady');
-                this.emit(':askWithCard', "Company found for number " + companyNumber.replace(/(.{1})/g,"$1 ") + " is " + companyName + ". Is this the company you want to save?", "Is this the company you want to save?", "Check Company to Store", "Company found for number " + companyNumber + " is " + companyName + ".");
+                this.emit(':askWithCard', "Company found for number " + companyNumber.replace(/(.{1})/g, "$1 ") + " is " + companyName + ". Is this the company you want to save?", "Is this the company you want to save?", "Check Company to Store", "Company found for number " + companyNumber + " is " + companyName + ".");
             }
         }, path);
     },
@@ -132,15 +128,14 @@ var handlers = {
         path = "/company/" + companyNumber;
         getAPIData((data) => {
             var outputSpeech = "";
-            
-            if( typeof data.errors !== "undefined" ) {
+
+            if (typeof data.errors !== "undefined") {
                 outputSpeech = "No company details were returned. Please try to store your company number again.";
-            }
-            else {
+            } else {
                 console.log("data returned: ", data);
-                outputSpeech += "Your company: " + data.company_name + ", created on " + new Date(data.date_of_creation).toDateString() + ".";
-                outputSpeech += ' Next accounts are due: ' + new Date(data.accounts.next_accounts.due_on).toDateString() + ".";
-                outputSpeech += ' Next confirmation statement is due: ' + new Date(data.confirmation_statement.next_due).toDateString() + ".";
+                outputSpeech += "Your company: " + data.company_name + ", created on " + new Date(data.date_of_creation).toDateString() + ". ";
+                outputSpeech += addAccountsOutputInfo(data);
+                outputSpeech += addConfirmationStatementOutputInfo(data);
             }
             this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "Get Company " + companyNumber, outputSpeech.replace('&', "and"), "");
         }, path);
@@ -151,13 +146,12 @@ var handlers = {
         path = "/company/" + companyNumber;
         getAPIData((data) => {
             var outputSpeech = "";
-            if( typeof data.errors !== "undefined" ) {
+            if (typeof data.errors !== "undefined") {
                 outputSpeech = "No company details were returned. Please check the company number provided";
-            }
-            else {
+            } else {
                 console.log("data returned: ", data);
-                outputSpeech += "Your stored company: " + data.company_name + ".";
-                outputSpeech += ' Next confirmation statement is due: ' + new Date(data.confirmation_statement.next_due).toDateString() + ".";                
+                outputSpeech += "Your stored company: " + data.company_name + ". ";
+                outputSpeech += addConfirmationStatementOutputInfo(data);
             }
             this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "My Company Confirmation Statement", outputSpeech.replace('&', "and"), "");
         }, path);
@@ -168,13 +162,12 @@ var handlers = {
         path = "/company/" + companyNumber;
         getAPIData((data) => {
             var outputSpeech = "";
-            if( typeof data.errors !== "undefined" ) {
+            if (typeof data.errors !== "undefined") {
                 outputSpeech = "No company details were returned. Please check the company number provided";
-            }
-            else {
+            } else {
                 console.log("data returned: ", data);
-                outputSpeech += "Your stored company: " + data.company_name + ".";
-                outputSpeech += ' Next accounts are due: ' + new Date(data.accounts.next_accounts.due_on).toDateString() + ".";
+                outputSpeech += "Your stored company: " + data.company_name + ". ";
+                outputSpeech += addAccountsOutputInfo(data);
             }
             this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "My Company Accounts", outputSpeech.replace('&', "and"), "");
         }, path);
@@ -185,22 +178,21 @@ var handlers = {
         path = "/company/" + companyNumber + "/filing-history?items_per_page=3";
         getAPIData((data) => {
             var outputSpeech = "";
-            if( typeof data.errors !== "undefined" ) {
+            if (typeof data.errors !== "undefined") {
                 outputSpeech = "No filing history for this company was returned.";
-            }
-            else if ( typeof data.items !== "undefined" ) {
+            } else if (typeof data.items !== "undefined") {
                 outputSpeech += "There have been " + data.total_count + " filings for this company: ";
                 if (data.total_count > 3) {
                     outputSpeech += "Here are the latest three. ";
                 }
                 for (var i = 0; i < data.items.length; i++) {
-                    var filingNum = i+1;
+                    var filingNum = i + 1;
                     outputSpeech += "Filing " + filingNum + ": ";
                     outputSpeech += "Date: " + data.items[i].date + ". ";
                     outputSpeech += "Category: " + data.items[i].category + ". ";
                     outputSpeech += "Form type: " + data.items[i].type + ". ";
                     outputSpeech += "Description: " + data.items[i].description.replace(/-/g, " ") + ". ";
-                }         
+                }
             }
             this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "My Company Filing History", outputSpeech.replace('&', "and"), "");
         }, path);
@@ -226,9 +218,11 @@ var handlers = {
         }
     },
     'AMAZON.NoIntent': function() {
-        this.emit(':tellWithCard', "Okay, company not saved");
+        if (this.attributes['contextIntent'] === 'StoreCompany') {
+            this.emit(':tellWithCard', "Okay, company not saved");
+        }
     },
-    'Unhandled': function () {
+    'Unhandled': function() {
         this.emit(':tell', "The service threw an error");
     }
 };
@@ -248,7 +242,7 @@ function delegateSlotCollection(shouldFillSlotsWithTestData) {
     if (this.event.request.dialogState === "STARTED") {
         console.log("in STARTED");
         console.log(JSON.stringify(this.event));
-        var updatedIntent=this.event.request.intent;
+        var updatedIntent = this.event.request.intent;
         // optionally pre-fill slots: update the intent object with slot values 
         // for which you have defaults, then return Dialog.Delegate with this 
 
@@ -268,22 +262,41 @@ function delegateSlotCollection(shouldFillSlotsWithTestData) {
 function retrieveCompanyNumber(slots) {
     console.log("slots received: ", slots);
     var companyNumber = "";
-    if ( typeof slots.companyNumber.value !== "undefined" ) {
+    if (typeof slots.companyNumber.value !== "undefined") {
         companyNumber = this.event.request.intent.slots.companyNumber.value;
     }
-    if ( typeof slots.companyNumberOpt.value !== "undefined" ) {
+    if (typeof slots.companyNumberOpt.value !== "undefined") {
         var slotOpt = this.event.request.intent.slots.companyNumberOpt.value;
-        if( slotOpt.match(/^(NI|SC|OC)$/) ) {
+        if (slotOpt.match(/^(NI|SC|OC|CE)$/)) {
             companyNumber = slotOpt + companyNumber;
         }
-    }
-    if (companyNumber.length !== 0) {
-        companyNumber = companyNumber.toUpperCase().padStart(8, "0");
-    }
-    else {
-        companyNumber = "";
+        if (companyNumber.length !== 0) {
+            companyNumber = companyNumber.toUpperCase().padStart(8, "0");
+        } else {
+            companyNumber = "";
+        }
     }
     return companyNumber;
+}
+
+function addAccountsOutputInfo(data) {
+    var outputSpeech = '';
+    if (data.company_status === 'dissolved') {
+        outputSpeech += ' Last accounts were made up to: ' + new Date(data.last_accounts.made_up_to).toDateString() + ". ";
+    } else {
+        outputSpeech += ' Next accounts are due: ' + new Date(data.accounts.next_accounts.due_on).toDateString() + ". ";
+    }
+
+    return outputSpeech;
+}
+
+function addConfirmationStatementOutputInfo(data) {
+    var outputSpeech = '';
+    if (data.company_status !== 'dissolved') {
+        outputSpeech += ' Next confirmation statement is due: ' + new Date(data.confirmation_statement.next_due).toDateString() + ".";
+    }
+
+    return outputSpeech;
 }
 
 function getAPIData(callback, path) {
