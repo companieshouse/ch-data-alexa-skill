@@ -243,13 +243,46 @@ function delegateSlotCollection(shouldFillSlotsWithTestData) {
         console.log("in STARTED");
         console.log(JSON.stringify(this.event));
         var updatedIntent = this.event.request.intent;
+        if (typeof this.event.request.intent !== "undefined") {
+            if (typeof this.event.request.intent.slots !== "undefined") {
+                companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
+                console.log("Slots are present, set to complete");
+                this.event.request.dialogState = "COMPLETED";
+                return this.event.request.intent.slots;
+            }
+        }
+        // optionally pre-fill slots: update the intent object with slot values 
+        // for which you have defaults, then return Dialog.Delegate with this 
+
+        return this.emit(":delegate", updatedIntent);
+    } else if (this.event.request.dialogState === "IN_PROGRESS") {
+        console.log("in PROGRESS");
+        console.log(JSON.stringify(this.event));
+        var updatedIntent = this.event.request.intent;
+        if (typeof this.event.request.intent !== "undefined") {
+            if (typeof this.event.request.intent.slots !== "undefined") {
+                companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
+                console.log("Slots are present, set to complete");
+                this.event.request.dialogState = "COMPLETED";
+                return this.event.request.intent.slots;
+            }
+        }
         // optionally pre-fill slots: update the intent object with slot values 
         // for which you have defaults, then return Dialog.Delegate with this 
 
         return this.emit(":delegate", updatedIntent);
     } else if (this.event.request.dialogState !== "COMPLETED") {
         console.log("in not completed");
-
+        console.log(JSON.stringify(this.event));
+        var updatedIntent = this.event.request.intent;
+        if (typeof this.event.request.intent !== "undefined") {
+            if (typeof this.event.request.intent.slots !== "undefined") {
+                companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
+                console.log("Slots are present, set to complete");
+                this.event.request.dialogState = "COMPLETED";
+                return this.event.request.intent.slots;
+            }
+        }
         return this.emit(":delegate", this.event.request.intent);
     } else {
         console.log("in completed");
@@ -259,30 +292,62 @@ function delegateSlotCollection(shouldFillSlotsWithTestData) {
     }
 }
 
+function resolveSlotValue(value) {
+    if (typeof value === 'undefined') {
+
+        return '';
+    } else if (value.length > 1) {
+        if (value.match(/^(to|too)$/)) return '2';
+        if (value.match(/^(fore|for)$/)) return '4';
+        if (value.match(/^(oh)$/)) return '0';
+
+        return '';
+    } else if (value.match(/^([0-9])$/)) {
+        return value;
+    } else {
+        return '';
+    }
+}
+
 function retrieveCompanyNumber(slots) {
     console.log("slots received: ", slots);
     var companyNumber = "";
-    if (typeof slots.companyNumber.value !== "undefined") {
-        companyNumber = this.event.request.intent.slots.companyNumber.value;
-    }
+    companyNumber += resolveSlotValue(slots.numbersWithExceptionsOne.value);
+    companyNumber += resolveSlotValue(slots.numbersWithExceptionsTwo.value);
+    companyNumber += resolveSlotValue(slots.numbersWithExceptionsThree.value);
+    companyNumber += resolveSlotValue(slots.numbersWithExceptionsFour.value);
+    companyNumber += resolveSlotValue(slots.numbersWithExceptionsFive.value);
+    companyNumber += resolveSlotValue(slots.numbersWithExceptionsSix.value);
+    companyNumber += resolveSlotValue(slots.numbersWithExceptionsSeven.value);
+    companyNumber += resolveSlotValue(slots.numbersWithExceptionsEight.value);
+
     if (typeof slots.companyNumberOpt.value !== "undefined") {
-        var slotOpt = this.event.request.intent.slots.companyNumberOpt.value;
+        var slotOpt = slots.companyNumberOpt.value;
         if (slotOpt.match(/^(NI|SC|OC|CE)$/)) {
             companyNumber = slotOpt + companyNumber;
+        } else if (slotOpt.match(/^(C|oh|Oh|OH|O|osi)$/)) {
+            companyNumber = "OC" + companyNumber;
         }
-        if (companyNumber.length !== 0) {
-            companyNumber = companyNumber.toUpperCase().padStart(8, "0");
-        } else {
-            companyNumber = "";
+        // Check if it's captured a digit (Despite the only values being company prefixes it still catches digits...)
+        else if (slotOpt.length === 1 && slotOpt.match(/^([0-9])$/)) {
+            companyNumber = slotOpt + companyNumber;
         }
     }
+
+    console.log("slots resolved: ", companyNumber);
+    if (companyNumber.length !== 0) {
+        companyNumber = companyNumber.toUpperCase().padStart(8, "0");
+    } else {
+        companyNumber = "";
+    }
+
     return companyNumber;
 }
 
 function addAccountsOutputInfo(data) {
     var outputSpeech = '';
     if (data.company_status === 'dissolved') {
-        outputSpeech += ' Last accounts were made up to: ' + new Date(data.last_accounts.made_up_to).toDateString() + ". ";
+        outputSpeech += ' Last accounts were made up to: ' + new Date(data.accounts.last_accounts.made_up_to).toDateString() + ". ";
     } else {
         outputSpeech += ' Next accounts are due: ' + new Date(data.accounts.next_accounts.due_on).toDateString() + ". ";
     }
