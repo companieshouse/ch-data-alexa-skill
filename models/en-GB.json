@@ -1,244 +1,370 @@
 {
-    "interactionModel": {
-        "languageModel": {
-            "invocationName": "companies house",
-            "intents": [
-                {
-                    "name": "GetCompany",
-                    "slots": [
-                        {
-                            "name": "companyNumber",
-                            "type": "AMAZON.NUMBER",
-                            "samples": [
-                                "{companyNumberOpt} {companyNumber}"
-                            ]
-                        },
-                        {
-                            "name": "companyNumberOpt",
-                            "type": "CompanyTypes"
-                        }
-                    ],
-                    "samples": [
-                        "to tell me about {companyNumber}",
-                        "for information on {companyNumber}",
-                        "for information on {companyNumberOpt} {companyNumber}",
-                        "to tell me about {companyNumberOpt} {companyNumber}"
-                    ]
-                },
-                {
-                    "name": "AMAZON.StopIntent",
-                    "samples": [
-                        "stop"
-                    ]
-                },
-                {
-                    "name": "AMAZON.CancelIntent",
-                    "samples": [
-                        "cancel"
-                    ]
-                },
-                {
-                    "name": "AMAZON.HelpIntent",
-                    "samples": [
-                        "I don't understand",
-                        "help",
-                        "What do you mean"
-                    ]
-                },
-                {
-                    "name": "GetOfficers",
-                    "slots": [
-                        {
-                            "name": "companyNumber",
-                            "type": "AMAZON.NUMBER",
-                            "samples": [
-                                "{companyNumberOpt} {companyNumber}"
-                            ]
-                        },
-                        {
-                            "name": "companyNumberOpt",
-                            "type": "CompanyTypes"
-                        }
-                    ],
-                    "samples": [
-                        "who are the appointments of {companyNumberOpt} {companyNumber}",
-                        "tell me the officers in company {companyNumberOpt} {companyNumber}"
-                    ]
-                }
-            ],
-            "types": [
-                {
-                    "name": "CompanyTypes",
-                    "values": [
-                        {
-                            "name": {
-                                "value": "O. C."
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "O.C."
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "N. I."
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "N.I."
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "S. C."
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "S.C."
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "S C"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "SC"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "NI"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "N I"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "O C"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "OC"
-                            }
-                        }
-                    ]
-                }
-            ]
-        },
-        "dialog": {
-            "intents": [
-                {
-                    "name": "GetOfficers",
-                    "confirmationRequired": false,
-                    "prompts": {},
-                    "slots": [
-                        {
-                            "name": "companyNumber",
-                            "type": "AMAZON.NUMBER",
-                            "confirmationRequired": false,
-                            "elicitationRequired": true,
-                            "prompts": {
-                                "elicitation": "Elicit.Slot.463670801273.74542096593"
-                            }
-                        },
-                        {
-                            "name": "companyNumberOpt",
-                            "type": "CompanyTypes",
-                            "confirmationRequired": false,
-                            "elicitationRequired": false,
-                            "prompts": {}
-                        }
-                    ]
-                },
-                {
-                    "name": "GetCompany",
-                    "confirmationRequired": false,
-                    "prompts": {},
-                    "slots": [
-                        {
-                            "name": "companyNumber",
-                            "type": "AMAZON.NUMBER",
-                            "confirmationRequired": false,
-                            "elicitationRequired": true,
-                            "prompts": {
-                                "elicitation": "Elicit.Slot.272306088752.1511658846045"
-                            }
-                        },
-                        {
-                            "name": "companyNumberOpt",
-                            "type": "CompanyTypes",
-                            "confirmationRequired": false,
-                            "elicitationRequired": false,
-                            "prompts": {}
-                        }
-                    ]
-                }
-            ]
-        },
-        "prompts": [
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "companies house",
+      "intents": [
+        {
+          "name": "GetCompany",
+          "slots": [
             {
-                "id": "Elicit.Slot.1122624845390.106887428611",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "What is the company number you want to hear about?"
-                    }
-                ]
+              "name": "companyNumberOpt",
+              "type": "CompanyTypes"
             },
             {
-                "id": "Elicit.Slot.1177327788856.1087866640195",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "What is the company number that the officers belong to?"
-                    }
-                ]
+              "name": "numbersWithExceptionsOne",
+              "type": "NumbersAccountForSpeech"
             },
             {
-                "id": "Elicit.Slot.1432449769494.989911990633",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "What is the company number of the company you want to hear about?"
-                    }
-                ]
+              "name": "numbersWithExceptionsTwo",
+              "type": "NumbersAccountForSpeech"
             },
             {
-                "id": "Elicit.Slot.1286252359257.890418905669",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "What is the company number for the company the officers are appointed to?"
-                    }
-                ]
+              "name": "numbersWithExceptionsThree",
+              "type": "NumbersAccountForSpeech"
             },
             {
-                "id": "Elicit.Slot.463670801273.74542096593",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "What is the company number the officers are appointed to?"
-                    }
-                ]
+              "name": "numbersWithExceptionsFour",
+              "type": "NumbersAccountForSpeech"
             },
             {
-                "id": "Elicit.Slot.272306088752.1511658846045",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "What is the company number of the company you want information on?"
-                    }
-                ]
+              "name": "numbersWithExceptionsFive",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsSix",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsSeven",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsEight",
+              "type": "NumbersAccountForSpeech"
             }
-        ]
+          ],
+          "samples": [
+            "{companyNumberOpt} {numbersWithExceptionsOne} {numbersWithExceptionsTwo} {numbersWithExceptionsThree} {numbersWithExceptionsFour} {numbersWithExceptionsFive} {numbersWithExceptionsSix} {numbersWithExceptionsSeven} {numbersWithExceptionsEight}",
+            "incorporation number {companyNumberOpt} {numbersWithExceptionsOne} {numbersWithExceptionsTwo} {numbersWithExceptionsThree} {numbersWithExceptionsFour} {numbersWithExceptionsFive} {numbersWithExceptionsSix} {numbersWithExceptionsSeven} {numbersWithExceptionsEight}",
+            "company {companyNumberOpt} {numbersWithExceptionsOne} {numbersWithExceptionsTwo} {numbersWithExceptionsThree} {numbersWithExceptionsFour} {numbersWithExceptionsFive} {numbersWithExceptionsSix} {numbersWithExceptionsSeven} {numbersWithExceptionsEight}",
+            "company number {companyNumberOpt} {numbersWithExceptionsOne} {numbersWithExceptionsTwo} {numbersWithExceptionsThree} {numbersWithExceptionsFour} {numbersWithExceptionsFive} {numbersWithExceptionsSix} {numbersWithExceptionsSeven} {numbersWithExceptionsEight}",
+            "company details {companyNumberOpt} {numbersWithExceptionsOne} {numbersWithExceptionsTwo} {numbersWithExceptionsThree} {numbersWithExceptionsFour} {numbersWithExceptionsFive} {numbersWithExceptionsSix} {numbersWithExceptionsSeven} {numbersWithExceptionsEight} ",
+            "about company {companyNumberOpt} {numbersWithExceptionsOne} {numbersWithExceptionsTwo} {numbersWithExceptionsThree} {numbersWithExceptionsFour} {numbersWithExceptionsFive} {numbersWithExceptionsSix} {numbersWithExceptionsSeven} {numbersWithExceptionsEight} "
+          ]
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": [
+            "stop"
+          ]
+        },
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": [
+            "cancel"
+          ]
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": [
+            "I don't understand",
+            "help",
+            "What do you mean"
+          ]
+        },
+        {
+          "name": "GetOfficers",
+          "slots": [
+            {
+              "name": "companyNumberOpt",
+              "type": "CompanyTypes"
+            },
+            {
+              "name": "numbersWithExceptionsOne",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsTwo",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsThree",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsFour",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsFive",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsSix",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsSeven",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsEight",
+              "type": "NumbersAccountForSpeech"
+            }
+          ],
+          "samples": [
+            "who are the appointments of {companyNumberOpt} {numbersWithExceptionsOne} {numbersWithExceptionsTwo} {numbersWithExceptionsThree} {numbersWithExceptionsFour} {numbersWithExceptionsFive} {numbersWithExceptionsSix} {numbersWithExceptionsSeven} {numbersWithExceptionsEight}",
+            "the officers in company {companyNumberOpt} {numbersWithExceptionsOne} {numbersWithExceptionsTwo} {numbersWithExceptionsThree} {numbersWithExceptionsFour} {numbersWithExceptionsFive} {numbersWithExceptionsSix} {numbersWithExceptionsSeven} {numbersWithExceptionsEight}"
+          ]
+        },
+        {
+          "name": "StoreCompany",
+          "slots": [
+            {
+              "name": "companyNumberOpt",
+              "type": "CompanyTypes"
+            },
+            {
+              "name": "numbersWithExceptionsOne",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsTwo",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsThree",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsFour",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsFive",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsSix",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsSeven",
+              "type": "NumbersAccountForSpeech"
+            },
+            {
+              "name": "numbersWithExceptionsEight",
+              "type": "NumbersAccountForSpeech"
+            }
+          ],
+          "samples": [
+            "remember company {companyNumberOpt} {numbersWithExceptionsOne} {numbersWithExceptionsTwo} {numbersWithExceptionsThree} {numbersWithExceptionsFour} {numbersWithExceptionsFive} {numbersWithExceptionsSix} {numbersWithExceptionsSeven} {numbersWithExceptionsEight}",
+            "store my company {companyNumberOpt} {numbersWithExceptionsOne} {numbersWithExceptionsTwo} {numbersWithExceptionsThree} {numbersWithExceptionsFour} {numbersWithExceptionsFive} {numbersWithExceptionsSix} {numbersWithExceptionsSeven} {numbersWithExceptionsEight}"
+          ]
+        },
+        {
+          "name": "MyCompanyCS",
+          "slots": [],
+          "samples": [
+            "Remind me about my confirmation statement",
+            "When is my confirmation statement due"
+          ]
+        },
+        {
+          "name": "MyCompanyAccounts",
+          "slots": [],
+          "samples": [
+            "Remind me about my company accounts",
+            "When are my company accounts due"
+          ]
+        },
+        {
+          "name": "AMAZON.YesIntent",
+          "samples": [
+            "Affirmative",
+            "Yep",
+            "Yes"
+          ]
+        },
+        {
+          "name": "AMAZON.NoIntent",
+          "samples": [
+            "Negative",
+            "Nope",
+            "No"
+          ]
+        },
+        {
+          "name": "MyFilingHistory",
+          "slots": [],
+          "samples": [
+            "what forms have I filed recently",
+            "tell me my recent filings",
+            "read to me my latest filings"
+          ]
+        },
+        {
+          "name": "MyCompanyDetails",
+          "slots": [],
+          "samples": [
+            "tell me about my company",
+            "give me my company details"
+          ]
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        }
+      ],
+      "types": [
+        {
+          "values": [
+            {
+              "name": {
+                "value": "CE",
+                "synonyms": [
+                  "C E",
+                  "C. E.",
+                  "C.E."
+                ]
+              }
+            },
+            {
+              "name": {
+                "value": "SC",
+                "synonyms": [
+                  "S.C.",
+                  "S. C.",
+                  "S C"
+                ]
+              }
+            },
+            {
+              "name": {
+                "value": "NI",
+                "synonyms": [
+                  "N.I.",
+                  "N. I.",
+                  "N I"
+                ]
+              }
+            },
+            {
+              "name": {
+                "value": "OC",
+                "synonyms": [
+                  "osi",
+                  "O. C.",
+                  "O.C.",
+                  "O C"
+                ]
+              }
+            }
+          ],
+          "name": "CompanyTypes"
+        },
+        {
+          "values": [
+            {
+              "id": "9",
+              "name": {
+                "value": "nine",
+                "synonyms": [
+                  "nine"
+                ]
+              }
+            },
+            {
+              "id": "8",
+              "name": {
+                "value": "eight",
+                "synonyms": [
+                  "eight",
+                  "ate"
+                ]
+              }
+            },
+            {
+              "id": "7",
+              "name": {
+                "value": "seven",
+                "synonyms": [
+                  "seven"
+                ]
+              }
+            },
+            {
+              "id": "6",
+              "name": {
+                "value": "six",
+                "synonyms": [
+                  "six"
+                ]
+              }
+            },
+            {
+              "id": "5",
+              "name": {
+                "value": "five",
+                "synonyms": [
+                  "five"
+                ]
+              }
+            },
+            {
+              "id": "4",
+              "name": {
+                "value": "four",
+                "synonyms": [
+                  "four",
+                  "for",
+                  "fore"
+                ]
+              }
+            },
+            {
+              "id": "3",
+              "name": {
+                "value": "three",
+                "synonyms": [
+                  "three"
+                ]
+              }
+            },
+            {
+              "id": "2",
+              "name": {
+                "value": "two",
+                "synonyms": [
+                  "too",
+                  "to",
+                  "two"
+                ]
+              }
+            },
+            {
+              "id": "1",
+              "name": {
+                "value": "one",
+                "synonyms": [
+                  "one"
+                ]
+              }
+            },
+            {
+              "id": "0",
+              "name": {
+                "value": "zero",
+                "synonyms": [
+                  "oh",
+                  "zero"
+                ]
+              }
+            }
+          ],
+          "name": "NumbersAccountForSpeech"
+        }
+      ]
     }
+  }
 }

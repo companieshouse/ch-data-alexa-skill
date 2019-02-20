@@ -1,49 +1,72 @@
 {
   "manifest": {
-    "publishingInformation": {
-      "locales": {
-        "en-GB": {
-          "summary": "Provides publicly available company data",
-          "examplePhrases": [
-            "Alexa, ask Companies House to tell me about number",
-            "Alexa, ask Companies House for information on number",
-            "Alexa, tell me the officers in company number from Companies House"
-          ],
-          "keywords": [
-            "company",
-            "data"
-          ],
-          "name": "companies house",
-          "description": "Want to know your accounting and confirmation statement due dates? Alexa knows, Just say: Alexa, ask company house to tell me about <Company Number>. Want to know who the officers are of that company? Alexa, ask companies house who are the appointments of <Company Number>",
-          "smallIconUri": "",
-          "largeIconUri": ""
-        }
-      },
-      "isAvailableWorldwide": true,
-      "testingInstructions": "No special instructions",
-      "category": "BUSINESS_AND_FINANCE",
-      "distributionCountries": []
-    },
     "apis": {
       "custom": {
         "endpoint": {
           "sourceDir": "lambda/custom"
-        }
+        },
+        "interfaces": []
       }
     },
     "manifestVersion": "1.0",
+    "permissions": [
+      {
+        "name": "alexa::alerts:reminders:skill:readwrite"
+      }
+    ],
     "privacyAndCompliance": {
-      "allowsPurchases": false,
       "locales": {
         "en-GB": {
-          "termsOfUseUrl": "http://resources.companieshouse.gov.uk/serviceInformation.shtml",
-          "privacyPolicyUrl": "http://resources.companieshouse.gov.uk/serviceInformation.shtml"
+          "privacyPolicyUrl": "http://resources.companieshouse.gov.uk/serviceInformation.shtml",
+          "termsOfUseUrl": "http://resources.companieshouse.gov.uk/serviceInformation.shtml"
         }
       },
-      "isExportCompliant": true,
-      "containsAds": false,
+      "allowsPurchases": false,
+      "usesPersonalInfo": false,
       "isChildDirected": false,
-      "usesPersonalInfo": false
+      "isExportCompliant": true,
+      "containsAds": false
+    },
+    "publishingInformation": {
+      "locales": {
+        "en-GB": {
+          "name": "Companies House",
+          "smallIconUri": "https://s3.amazonaws.com/CAPS-SSE/echo_developer/533a/76d271719e8040d182b60b2b9fbcd166/APP_ICON?versionId=bSP5V6CkMXXAo49bBJsM1xzkt9XITWQU&AWSAccessKeyId=AKIAJFEYRBGIHK2BBYKA&Expires=1550764023&Signature=QEXKQ96SRVnfiRt9fQTihLTprG8%3D",
+          "largeIconUri": "https://s3.amazonaws.com/CAPS-SSE/echo_developer/79bc/99c40a31c269420b90ee26379e7bc510/APP_ICON_LARGE?versionId=jta.T5VTHD0dHOEjkbUzhkh3aPKxvmIc&AWSAccessKeyId=AKIAJFEYRBGIHK2BBYKA&Expires=1550764023&Signature=flseb%2BXQUOwjpwi3POQZ9s1g784%3D",
+          "summary": "Provides publicly available company data",
+          "description": "Request information for any company on the Companies House register. \n\nThis skill allows users to access public information from Companies House and the https://beta.companieshouse.gov.uk website.\n\nIf you own or follow a certain company, Alexa the skill will store your company so you can ask for details of that company. Perhaps you'd like to be told when the accounts are due, or when the confirmation statement needs to be filed. The Companies House Skill will also tell you about the company's latest filing history.\n\n\nWant to know your accounting and confirmation statement due dates? \nJust say: Alexa, ask company house to tell me about <Company Number>.\n\nWant to know who the officers are of that company? Ask Companies House tell me the officers of <Company Number>",
+          "examplePhrases": [
+            "Alexa, ask companies house for company number five four two two two",
+            "Alexa ask companies house to remember company five four two two two",
+            "Alexa ask companies house who are the appointments of five four two two two"
+          ],
+          "keywords": [
+            "company",
+            "data",
+            "companies",
+            "house",
+            "uk",
+            "business",
+            "officers",
+            "directors",
+            "persons",
+            "of",
+            "significant",
+            "control",
+            "company",
+            "accounts",
+            "confirmation",
+            "statement",
+            "company",
+            "filing",
+            "history"
+          ]
+        }
+      },
+      "isAvailableWorldwide": true,
+      "testingInstructions": "To query companies you'll need to look up some company numbers on https://beta.companieshouse.gov.uk/ where companies can be searched for.\n\nFor instance a well known company, Tesco PLC 00445790 (or shortened to 445790)",
+      "category": "BUSINESS_AND_FINANCE",
+      "distributionCountries": []
     }
   }
 }

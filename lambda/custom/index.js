@@ -2,6 +2,11 @@ var Alexa = require('alexa-sdk');
 var AWS = require('aws-sdk');
 var http = require('https');
 
+var LIQUIDATED = 'liquidation';
+var DISSOLVED = 'dissolved';
+
+// Need to account for CS (CS002402) and SO (SO306638) companies later.
+
 exports.handler = function(event, context, callback) {
     var alexa = Alexa.handler(event, context);
     alexa.appId = process.env.app_id;
@@ -24,22 +29,20 @@ var handlers = {
         let isTestingWithSimulator = false; //autofill slots when using simulator, dialog management is only supported with a device
         let filledSlots = delegateSlotCollection.call(this, isTestingWithSimulator);
 
-        console.log("THIS.EVENT = " + JSON.stringify(this.event));
         if (typeof this.event.request.intent !== "undefined") {
             if (typeof this.event.request.intent.slots !== "undefined") {
                 companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
             }
         }
-        console.log("Back from delegateSlotCollection, slot is: ", companyNumber);
         path = "/company/" + companyNumber;
         getAPIData((data) => {
             var outputSpeech = "";
-
             if (typeof data.errors !== "undefined") {
                 outputSpeech = "No company details were returned. Please check the company number provided";
             } else {
                 console.log("data returned: ", data);
                 outputSpeech += data.company_name + ", created on " + new Date(data.date_of_creation).toDateString() + ". ";
+                outputSpeech += "Company status: " + data.company_status + ". ";
                 outputSpeech += addAccountsOutputInfo(data);
                 outputSpeech += addConfirmationStatementOutputInfo(data);
             }
@@ -65,7 +68,8 @@ var handlers = {
             if (typeof data.errors !== "undefined") {
                 outputSpeech = "No company details were returned. Please check the company number provided";
             } else if (typeof data.items !== "undefined") {
-                outputSpeech += "There have been " + data.total_results + " officers of this company: ";
+                console.log("data returned: ", data);
+                outputSpeech += "There have been " + data.total_results + " officers of: " + data.company_name;
                 if (data.active_count > 5) {
                     outputSpeech += "There are " + data.active_count + " active officers. Here are the first five returned. ";
                 } else {
@@ -103,21 +107,12 @@ var handlers = {
                 outputSpeech = "No company details were returned. Please check the company number provided";
             } else {
                 console.log("data returned: ", data);
-                console.log("Adding a new item...");
                 this.attributes['contextIntent'] = 'StoreCompany';
                 this.attributes['tempCompanyNumber'] = companyNumber;
                 var companyName = data.company_name.replace('&', "and");
 
-                // TODO - WHich output speech is being used here? Is response speak/listen doing it or is askWithCard?
-                // Need to resolve gathering of company numbers. Tesco wasn't working ...
-                // Work on recognition of certain numbers: 445790 Comes through as Four For Five Seven Nine Oh Expand model with exceptions?
-                // Create outputSpeech helper method which cleans all output speech to avoid bad SSML error.
-
-
                 outputSpeech += "Company found for number " + companyNumber + " is " + data.company_name + ". Is this the company you want to save?";
-                // this.response.shouldEndSession(true);
                 this.response.speak(outputSpeech).listen(outputSpeech, 'Say yes to save the company or no to quit.');
-                // this.emit(':responseReady');
                 this.emit(':askWithCard', "Company found for number " + companyNumber.replace(/(.{1})/g, "$1 ") + " is " + companyName + ". Is this the company you want to save?", "Is this the company you want to save?", "Check Company to Store", "Company found for number " + companyNumber + " is " + companyName + ".");
             }
         }, path);
@@ -181,7 +176,8 @@ var handlers = {
             if (typeof data.errors !== "undefined") {
                 outputSpeech = "No filing history for this company was returned.";
             } else if (typeof data.items !== "undefined") {
-                outputSpeech += "There have been " + data.total_count + " filings for this company: ";
+                console.log("data returned: ", data);
+                outputSpeech += "There have been " + data.total_count + " filings for: " + data.company_name;
                 if (data.total_count > 3) {
                     outputSpeech += "Here are the latest three. ";
                 }
@@ -207,7 +203,6 @@ var handlers = {
         this.emit(':tell', "Goodbye!");
     },
     'AMAZON.YesIntent': function() {
-        console.log("this is: " + this);
         if (this.attributes['contextIntent'] === 'StoreCompany') {
             this.attributes['companyNumber'] = this.attributes['tempCompanyNumber'];
 
@@ -228,8 +223,6 @@ var handlers = {
 };
 
 function delegateSlotCollection(shouldFillSlotsWithTestData) {
-    console.log("in delegateSlotCollection");
-    console.log("current dialogState: " + this.event.request.dialogState);
 
     // This will fill any empty slots with canned data provided in defaultData
     // and mark dialogState COMPLETED.
@@ -240,8 +233,6 @@ function delegateSlotCollection(shouldFillSlotsWithTestData) {
     }
 
     if (this.event.request.dialogState === "STARTED") {
-        console.log("in STARTED");
-        console.log(JSON.stringify(this.event));
         var updatedIntent = this.event.request.intent;
         if (typeof this.event.request.intent !== "undefined") {
             if (typeof this.event.request.intent.slots !== "undefined") {
@@ -256,13 +247,10 @@ function delegateSlotCollection(shouldFillSlotsWithTestData) {
 
         return this.emit(":delegate", updatedIntent);
     } else if (this.event.request.dialogState === "IN_PROGRESS") {
-        console.log("in PROGRESS");
-        console.log(JSON.stringify(this.event));
         var updatedIntent = this.event.request.intent;
         if (typeof this.event.request.intent !== "undefined") {
             if (typeof this.event.request.intent.slots !== "undefined") {
                 companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
-                console.log("Slots are present, set to complete");
                 this.event.request.dialogState = "COMPLETED";
                 return this.event.request.intent.slots;
             }
@@ -272,20 +260,16 @@ function delegateSlotCollection(shouldFillSlotsWithTestData) {
 
         return this.emit(":delegate", updatedIntent);
     } else if (this.event.request.dialogState !== "COMPLETED") {
-        console.log("in not completed");
-        console.log(JSON.stringify(this.event));
         var updatedIntent = this.event.request.intent;
         if (typeof this.event.request.intent !== "undefined") {
             if (typeof this.event.request.intent.slots !== "undefined") {
                 companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
-                console.log("Slots are present, set to complete");
                 this.event.request.dialogState = "COMPLETED";
                 return this.event.request.intent.slots;
             }
         }
         return this.emit(":delegate", this.event.request.intent);
     } else {
-        console.log("in completed");
         // Dialog is now complete and all required slots should be filled,
         // so call your normal intent handler.
         return this.event.request.intent.slots;
@@ -299,7 +283,7 @@ function resolveSlotValue(value) {
     } else if (value.length > 1) {
         if (value.match(/^(to|too)$/)) return '2';
         if (value.match(/^(fore|for)$/)) return '4';
-        if (value.match(/^(oh)$/)) return '0';
+        if (value.match(/^(oh|Oh|OH|O)$/)) return '0';
 
         return '';
     } else if (value.match(/^([0-9])$/)) {
@@ -325,7 +309,7 @@ function retrieveCompanyNumber(slots) {
         var slotOpt = slots.companyNumberOpt.value;
         if (slotOpt.match(/^(NI|SC|OC|CE)$/)) {
             companyNumber = slotOpt + companyNumber;
-        } else if (slotOpt.match(/^(C|oh|Oh|OH|O|osi)$/)) {
+        } else if (slotOpt.match(/^(C|c|oh|Oh|OH|O|o|osi)$/)) {
             companyNumber = "OC" + companyNumber;
         }
         // Check if it's captured a digit (Despite the only values being company prefixes it still catches digits...)
@@ -334,22 +318,39 @@ function retrieveCompanyNumber(slots) {
         }
     }
 
-    console.log("slots resolved: ", companyNumber);
     if (companyNumber.length !== 0) {
         companyNumber = companyNumber.toUpperCase().padStart(8, "0");
+
+        // Checking for whether the second slot was a C - for some reason despite it not being a valid value 
+        // it still comes through as a slot type instead of coming through as the Opt /NI|SC|OC|CE/ slot.
+        if (typeof slots.numbersWithExceptionsOne.value !== "undefined" && typeof slots.numbersWithExceptionsTwo.value !== "undefined") {
+            var slotOne = slots.numbersWithExceptionsOne.value;
+            var slotTwo = slots.numbersWithExceptionsTwo.value;
+            if (slotTwo.match(/^(C|c)$/)) {
+                if (slotOne.match(/^(oh|Oh|OH|O)$/)) {
+                    companyNumber = 'OC' + companyNumber.substring(2);
+                } else if (slotOne.match(/^(S|s)$/)) {
+                    companyNumber = 'SC' + companyNumber.substring(2);
+                }
+            }
+        }
+
     } else {
         companyNumber = "";
     }
 
+    console.log("Resolved company number: " + companyNumber);
     return companyNumber;
 }
 
 function addAccountsOutputInfo(data) {
     var outputSpeech = '';
-    if (data.company_status === 'dissolved') {
-        outputSpeech += ' Last accounts were made up to: ' + new Date(data.accounts.last_accounts.made_up_to).toDateString() + ". ";
-    } else {
-        outputSpeech += ' Next accounts are due: ' + new Date(data.accounts.next_accounts.due_on).toDateString() + ". ";
+    if (typeof data.accounts !== "undefined") {
+        if (data.company_status === DISSOLVED || data.company_status === LIQUIDATED) {
+            outputSpeech += ' Last accounts were made up to: ' + new Date(data.accounts.last_accounts.made_up_to).toDateString() + ". ";
+        } else {
+            outputSpeech += ' Next accounts are due: ' + new Date(data.accounts.next_accounts.due_on).toDateString() + ". ";
+        }
     }
 
     return outputSpeech;
@@ -357,8 +358,10 @@ function addAccountsOutputInfo(data) {
 
 function addConfirmationStatementOutputInfo(data) {
     var outputSpeech = '';
-    if (data.company_status !== 'dissolved') {
-        outputSpeech += ' Next confirmation statement is due: ' + new Date(data.confirmation_statement.next_due).toDateString() + ".";
+    if (data.company_status !== DISSOLVED || data.company_status !== LIQUIDATED) {
+        if (typeof data.confirmation_statement !== "undefined") {
+            outputSpeech += ' Next confirmation statement is due: ' + new Date(data.confirmation_statement.next_due).toDateString() + ".";
+        }
     }
 
     return outputSpeech;
@@ -371,7 +374,6 @@ function getAPIData(callback, path) {
         path: path,
         method: 'GET'
     };
-    console.log("Path: ", path);
 
     var req = http.request(options, res => {
         var returnData = "";
