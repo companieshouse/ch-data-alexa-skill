@@ -20,7 +20,10 @@ AWS.config.update({
 
 var handlers = {
     'LaunchRequest': function() {
-        this.emit('StoreCompany');
+        var outputSpeech = 'Welcome to Companies House Alexa Skill. All you need is a company incorporation number. ';
+        outputSpeech += 'You can ask Companies House for any company details, officers, filing history or perhaps ask to store the company number for later. ';
+        outputSpeech += 'Please provide a company number to hear details of.';
+        this.emit(':askWithCard', outputSpeech, 'Welcome to Companies House', outputSpeech, '');
     },
     'GetCompany': function() {
         var companyNumber;
@@ -32,6 +35,11 @@ var handlers = {
         if (typeof this.event.request.intent !== "undefined") {
             if (typeof this.event.request.intent.slots !== "undefined") {
                 companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
+                if (companyNumber.length > 8) {
+                    var outputSpeech = 'Company number: ' + companyNumber + ' is longer than 8 characters. Please check the company number provided.';
+                    this.emit(':tellWithCard', outputSpeech, 'Company number too long', outputSpeech, '');
+                    return;
+                }
             }
         }
         path = "/company/" + companyNumber;
@@ -59,6 +67,11 @@ var handlers = {
         if (typeof this.event.request.intent !== "undefined") {
             if (typeof this.event.request.intent.slots !== "undefined") {
                 companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
+                if (companyNumber.length > 8) {
+                    var outputSpeech = 'Company number: ' + companyNumber + ' is longer than 8 characters. Please check the company number provided.';
+                    this.emit(':tellWithCard', outputSpeech, 'Company number too long', outputSpeech, '');
+                    return;
+                }
             }
         }
         path = "/company/" + companyNumber + "/officers?items_per_page=5";
@@ -69,7 +82,7 @@ var handlers = {
                 outputSpeech = "No company details were returned. Please check the company number provided";
             } else if (typeof data.items !== "undefined") {
                 console.log("data returned: ", data);
-                outputSpeech += "There have been " + data.total_results + " officers of: " + data.company_name;
+                outputSpeech += "There have been " + data.total_results + " officers of company number: " + companyNumber + ". ";
                 if (data.active_count > 5) {
                     outputSpeech += "There are " + data.active_count + " active officers. Here are the first five returned. ";
                 } else {
@@ -97,6 +110,11 @@ var handlers = {
         if (typeof this.event.request.intent !== "undefined") {
             if (typeof this.event.request.intent.slots !== "undefined") {
                 companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
+                if (companyNumber.length > 8) {
+                    var outputSpeech = 'Company number: ' + companyNumber + ' is longer than 8 characters. Please check the company number provided.';
+                    this.emit(':tellWithCard', outputSpeech, 'Company number too long', outputSpeech, '');
+                    return;
+                }
             }
         }
 
@@ -175,9 +193,53 @@ var handlers = {
             var outputSpeech = "";
             if (typeof data.errors !== "undefined") {
                 outputSpeech = "No filing history for this company was returned.";
+            } else if (typeof data.total_count === 0) {
+                outputSpeech = "No filings found for company number: " + companyNumber + ". Please check the company number provided. ";
             } else if (typeof data.items !== "undefined") {
                 console.log("data returned: ", data);
-                outputSpeech += "There have been " + data.total_count + " filings for: " + data.company_name;
+                outputSpeech += "There have been " + data.total_count + " filings for stored company number: " + companyNumber + ". ";
+                if (data.total_count > 3) {
+                    outputSpeech += "Here are the latest three. ";
+                }
+                for (var i = 0; i < data.items.length; i++) {
+                    var filingNum = i + 1;
+                    outputSpeech += "Filing " + filingNum + ": ";
+                    outputSpeech += "Date: " + data.items[i].date + ". ";
+                    outputSpeech += "Category: " + data.items[i].category + ". ";
+                    outputSpeech += "Form type: " + data.items[i].type + ". ";
+                    outputSpeech += "Description: " + data.items[i].description.replace(/-/g, " ") + ". ";
+                }
+            }
+            this.emit(':tellWithCard', outputSpeech.replace('&', "and"), "My Company Filing History", outputSpeech.replace('&', "and"), "");
+        }, path);
+    },
+    'GetFilingHistory': function() {
+        var companyNumber;
+
+        let isTestingWithSimulator = false; //autofill slots when using simulator, dialog management is only supported with a device
+        let filledSlots = delegateSlotCollection.call(this, isTestingWithSimulator);
+
+        if (typeof this.event.request.intent !== "undefined") {
+            if (typeof this.event.request.intent.slots !== "undefined") {
+                companyNumber = retrieveCompanyNumber.call(this, this.event.request.intent.slots);
+                if (companyNumber.length > 8) {
+                    var outputSpeech = 'Company number: ' + companyNumber + ' is longer than 8 characters. Please check the company number provided.';
+                    this.emit(':tellWithCard', outputSpeech, 'Company number too long', outputSpeech, '');
+                    return;
+                }
+            }
+        }
+
+        path = "/company/" + companyNumber + "/filing-history?items_per_page=3";
+        getAPIData((data) => {
+            var outputSpeech = "";
+            if (typeof data.errors !== "undefined") {
+                outputSpeech = "No filing history for this company was returned.";
+            } else if (typeof data.total_count === 0) {
+                outputSpeech = "No filings found for company number: " + companyNumber + ". Please check the company number provided. ";
+            } else if (typeof data.items !== "undefined") {
+                console.log("data returned: ", data);
+                outputSpeech += "There have been " + data.total_count + " filings for company number: " + companyNumber + ". ";
                 if (data.total_count > 3) {
                     outputSpeech += "Here are the latest three. ";
                 }
